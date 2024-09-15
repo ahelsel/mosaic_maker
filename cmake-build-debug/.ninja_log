@@ -1,0 +1,6 @@
+# ninja log v5
+1	272	7481198014402700	CMakeFiles/mosaic_maker.dir/main.cpp.obj	a8481e8d2202fb12
+274	367	7481198015323061	mosaic_maker.exe	db156c4f547d1177
+5	39	7481228677612788	CMakeFiles/mosaic_maker.dir/image_util/image_util.c.obj	5cd9063dd9ae39d9
+2	355	7481228680769052	CMakeFiles/mosaic_maker.dir/image_util/lodepng.c.obj	647a1549e6e0b64c
+356	445	7481228681658378	mosaic_maker.exe	e534097aadb91b6b
