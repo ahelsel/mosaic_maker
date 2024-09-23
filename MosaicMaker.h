@@ -32,10 +32,10 @@ private:
     Image mosaic_image;
 
     // Helpers
-    void load_target_image;
-    void load_tile_images;
-    void divide_target_image;
-    void computer_target_tile_colors;
+    void load_target_image();
+    void load_tile_images();
+    void divide_target_image();
+    void computer_target_tile_colors();
 
     const TileImage& find_best_match(const Color& target_color);
     void construct_mosaic_image();

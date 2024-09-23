@@ -3,3 +3,15 @@
 //
 
 #include "TileImage.h"
+
+TileImage::TileImage(const std::string &filename) {
+
+}
+
+TileImage::~TileImage() {
+
+}
+
+void TileImage::compute_average_color() {
+
+}

@@ -6,6 +6,8 @@
 #define MOSAIC_MAKER_TILEIMAGE_H
 
 
+#include "image_util/image_util.h"
+
 class TileImage {
 public:
     explicit TileImage(const std::string& filename);
