@@ -7,4 +7,8 @@ add_executable(mosaic_maker main.cpp
         image_util/image_util.h
         image_util/image_util.c
         image_util/lodepng.h
-        image_util/lodepng.c)
+        image_util/lodepng.c
+        MosaicMaker.cpp
+        MosaicMaker.h
+        TileImage.cpp
+        TileImage.h)
