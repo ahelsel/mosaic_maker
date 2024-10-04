@@ -12,6 +12,5 @@ int main() {
      * - Load in the target image and tile image data using LodePNG
      * */
 
-
     return 0;
 }

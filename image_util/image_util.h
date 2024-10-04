@@ -5,9 +5,11 @@
 #ifndef MOSAIC_MAKER_IMAGE_UTIL_H
 #define MOSAIC_MAKER_IMAGE_UTIL_H
 
-#ifndef __cplusplus
-extern "C" {
-#endif
+#include "lodepng.h"
+#include "stdio.h"
+
+#include <math.h>
+#include <limits.h>
 
 typedef struct {
     unsigned char* pixels;
@@ -21,13 +23,10 @@ typedef struct {
     unsigned char b;
 } Color;
 
-int load_image(const char* filename, Image* img);
-int save_image(const char* filename, const Image* img);
-int compute_average_color(const Image* img, int x, int y, int width, int height, Color* avg_color);
-void free_image(Image* img);
+int loadImage(const char* filepath, unsigned char** image, unsigned* width, unsigned* height);
+void computeAverageColor(const unsigned char* image, unsigned width, unsigned height, unsigned* r, unsigned* g, unsigned* b);
+int saveImage(const char* filename, const Image* img);
 
-#ifndef __cplusplus
-}
-#endif
+const char* findBestMatchingTile(const char** tilePaths, int tileCount, unsigned targetR, unsigned targetG, unsigned targetB);
 
 #endif //MOSAIC_MAKER_IMAGE_UTIL_H
