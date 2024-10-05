@@ -67,18 +67,6 @@ build CMakeFiles/mosaic_maker.dir/image_util/lodepng.c.obj: C_COMPILER__mosaic_m
   OBJECT_DIR = CMakeFiles\mosaic_maker.dir
   OBJECT_FILE_DIR = CMakeFiles\mosaic_maker.dir\image_util
 
-build CMakeFiles/mosaic_maker.dir/MosaicMaker.cpp.obj: CXX_COMPILER__mosaic_maker_unscanned_Debug C$:/Users/Tony/CLionProjects/mosaic_maker/MosaicMaker.cpp || cmake_object_order_depends_target_mosaic_maker
-  DEP_FILE = CMakeFiles\mosaic_maker.dir\MosaicMaker.cpp.obj.d
-  FLAGS = -g -fdiagnostics-color=always
-  OBJECT_DIR = CMakeFiles\mosaic_maker.dir
-  OBJECT_FILE_DIR = CMakeFiles\mosaic_maker.dir
-
-build CMakeFiles/mosaic_maker.dir/TileImage.cpp.obj: CXX_COMPILER__mosaic_maker_unscanned_Debug C$:/Users/Tony/CLionProjects/mosaic_maker/TileImage.cpp || cmake_object_order_depends_target_mosaic_maker
-  DEP_FILE = CMakeFiles\mosaic_maker.dir\TileImage.cpp.obj.d
-  FLAGS = -g -fdiagnostics-color=always
-  OBJECT_DIR = CMakeFiles\mosaic_maker.dir
-  OBJECT_FILE_DIR = CMakeFiles\mosaic_maker.dir
-
 
 # =============================================================================
 # Link build statements for EXECUTABLE target mosaic_maker
@@ -87,7 +75,7 @@ build CMakeFiles/mosaic_maker.dir/TileImage.cpp.obj: CXX_COMPILER__mosaic_maker_
 #############################################
 # Link the executable mosaic_maker.exe
 
-build mosaic_maker.exe: CXX_EXECUTABLE_LINKER__mosaic_maker_Debug CMakeFiles/mosaic_maker.dir/main.cpp.obj CMakeFiles/mosaic_maker.dir/image_util/image_util.c.obj CMakeFiles/mosaic_maker.dir/image_util/lodepng.c.obj CMakeFiles/mosaic_maker.dir/MosaicMaker.cpp.obj CMakeFiles/mosaic_maker.dir/TileImage.cpp.obj
+build mosaic_maker.exe: CXX_EXECUTABLE_LINKER__mosaic_maker_Debug CMakeFiles/mosaic_maker.dir/main.cpp.obj CMakeFiles/mosaic_maker.dir/image_util/image_util.c.obj CMakeFiles/mosaic_maker.dir/image_util/lodepng.c.obj
   FLAGS = -g
   LINK_LIBRARIES = -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\mosaic_maker.dir

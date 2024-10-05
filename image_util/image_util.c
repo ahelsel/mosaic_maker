@@ -3,9 +3,11 @@
 //
 
 #include "image_util.h"
+#include "lodepng.h"
+#include <stdio.h>
 
-int loadImage(const char* filepath, unsigned char** image, unsigned* width, unsigned* height) {
-    unsigned error = lodepng_decode32_file(image, width, height, filepath);
+int loadImage(const char* filepath, Image* img) {
+    unsigned error = lodepng_decode32_file(&img->pixels, &img->width, &img->height, filepath);
     if (error) {
         printf("Error loading image %s: %s\n", filepath, lodepng_error_text(error));
         return (int)error;
@@ -13,49 +15,24 @@ int loadImage(const char* filepath, unsigned char** image, unsigned* width, unsi
     return 0;
 }
 
-void computeAverageColor(const unsigned char* image, unsigned width, unsigned height, unsigned* r, unsigned* g, unsigned* b) {
-    *r = *g = *b = 0;
-    unsigned pixelCount = width * height;
+void computeAverageColor(const Image* img, Color* avgColor) {
+    unsigned long r = 0, g = 0, b = 0;
+    unsigned pixelCount = img->width * img->height;
 
     for (unsigned i = 0; i < pixelCount * 4; i += 4) {
-        *r += image[i];
-        *g += image[i + 1];
-        *b += image[i + 2];
+        r += img->pixels[i];
+        g += img->pixels[i + 1];
+        b += img->pixels[i + 2];
     }
 
-    *r /= pixelCount;
-    *g /= pixelCount;
-    *b /= pixelCount;
+    avgColor->r = (unsigned char)(r / pixelCount);
+    avgColor->g = (unsigned char)(g / pixelCount);
+    avgColor->b = (unsigned char)(b / pixelCount);
 }
 
-int saveImage(const char* filename, const Image* img) {
-    return 0;
-}
-
-
-const char* findBestMatchingTile(const char** tilePaths, int tileCount, unsigned targetR, unsigned targetG, unsigned targetB) {
-    const char* bestTile = NULL;
-    unsigned min_difference = UINT_MAX;
-
-    for (int i = 0; i < tileCount; i++) {
-        unsigned char* tileImage;
-        unsigned tileWidth, tileHeight;
-
-        if (loadImage(tilePaths[i], &tileImage, &tileWidth, &tileHeight) != 0) {
-            continue;
-        }
-
-        unsigned tileR, tileG, tileB;
-        computeAverageColor(tileImage, tileWidth, tileHeight, &tileR, &tileG, &tileB);
-
-        unsigned diff = pow(targetR - tileR, 2) + pow(targetG - tileG, 2) + pow(targetB - tileB, 2);
-
-        if (diff < min_difference) {
-            min_difference = diff;
-            bestTile = tilePaths[i];
-        }
-
-        free(tileImage);
+void freeImage(Image* img) {
+    if (img->pixels) {
+        free(img->pixels);
+        img->pixels = NULL;
     }
-    return bestTile;
 }
