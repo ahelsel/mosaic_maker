@@ -3,6 +3,7 @@
 //
 #include "image_util.h"
 #include <string.h>
+#include <math.h>
 
 Image* loadImage(const char* filename) {
     Image* image = (Image*)malloc(sizeof(Image));
@@ -102,4 +103,41 @@ void getDirectoryFilePaths(const char* directoryPath, char*** filenames, int* fi
     closedir(directory);
     *filenames = files;
     *filecount = count;
+}
+
+Image* resizeImage(const Image* sourceImage, unsigned newWidth, unsigned newHeight) {
+    Image* resizedImage = (Image*)malloc(sizeof(Image));
+    if (!resizedImage) {
+        printf("Failed to allocate memory for resized image\n");
+        return NULL;
+    }
+    resizedImage->width = newWidth;
+    resizedImage->height = newHeight;
+    resizedImage->pixels = (unsigned char*)malloc(newWidth * newHeight * 4);
+    if (!resizedImage->pixels) {
+        printf("Failed to allocate memory for resized image pixels\n");
+        free(resizedImage);
+        return NULL;
+    }
+
+    double scaleX = (double)sourceImage->width / newWidth;
+    double scaleY = (double)sourceImage->height / newHeight;
+
+    for (unsigned y = 0; y < newHeight; ++y) {
+        for (unsigned x = 0; x < newWidth; ++x) {
+            unsigned srcX = (unsigned)(x * scaleX);
+            unsigned srcY = (unsigned)(y * scaleY);
+            if (srcX >= sourceImage->width) srcX = sourceImage->width - 1;
+            if (srcY >= sourceImage->height) srcY = sourceImage->height - 1;
+
+            unsigned destIdx = 4 * (y * newWidth + x);
+            unsigned srcIdx = 4 * (srcY * sourceImage->width + srcX);
+
+            resizedImage->pixels[destIdx]     = sourceImage->pixels[srcIdx];
+            resizedImage->pixels[destIdx + 1] = sourceImage->pixels[srcIdx + 1];
+            resizedImage->pixels[destIdx + 2] = sourceImage->pixels[srcIdx + 2];
+            resizedImage->pixels[destIdx + 3] = sourceImage->pixels[srcIdx + 3];
+        }
+    }
+    return resizedImage;
 }

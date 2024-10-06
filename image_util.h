@@ -27,6 +27,7 @@ typedef struct {
 } Image;
 
 Image* loadImage(const char* filename);
+Image* resizeImage(const Image* sourceImage, unsigned newWidth, unsigned newHeight);
 void freeImage(Image* image);
 Color computeAverageColor(const Image* image);
 void getDirectoryFilePaths(const char* directoryPath, char*** filenames, int* filecount);

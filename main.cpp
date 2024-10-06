@@ -1,18 +1,26 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <filesystem>
 #include <limits>
-#include <iostream>
-#include <vector>
-#include <string>
-#include <limits>
+#include <cmath>
 
 #include "image_util.h"
 
 extern "C" {
 #include "lodepng/lodepng.h"
 }
+
+// Parameters (hardcoded as per mp_mosaics assignment)
+//#define TARGET_IMAGE_PATH   "background_image.png"
+//#define TILE_DIRECTORY      "tile_directory/"
+//#define OUTPUT_IMAGE_PATH   "mosaic.png"
+
+#define TARGET_IMAGE_PATH   "C:\\Users\\Tony\\CLionProjects\\mosaic_maker\\mona_lisa.png"
+#define TILE_DIRECTORY      "C:\\Users\\Tony\\CLionProjects\\mosaic_maker\\blocks"
+#define OUTPUT_IMAGE_PATH   "C:\\Users\\Tony\\CLionProjects\\mosaic_maker\\output_mosaic.png"
+
+#define NUMBER_OF_TILES     150  // Number of tiles along the shorter dimension
+#define PIXELS_PER_TILE     50   // Width/height of each tile in the mosaic
 
 // Structure to hold tile information
 struct Tile {
@@ -21,13 +29,8 @@ struct Tile {
 };
 
 int main() {
-    // Paths
-    std::string targetImagePath  = "mona_lisa.png";
-    std::string tileImageDirPath = "blocks/";
-    std::string outputImagePath  = "output_mosaic.png";
-
     // Load target image
-    Image* targetImage = loadImage(targetImagePath.c_str());
+    Image* targetImage = loadImage(TARGET_IMAGE_PATH);
     if (!targetImage) {
         std::cerr << "Failed to load target image." << std::endl;
         return EXIT_FAILURE;
@@ -36,7 +39,7 @@ int main() {
     // Load tile images
     char** tileFilePaths = nullptr;
     int tileFileCount = 0;
-    getDirectoryFilePaths(tileImageDirPath.c_str(), &tileFilePaths, &tileFileCount);
+    getDirectoryFilePaths(TILE_DIRECTORY, &tileFilePaths, &tileFileCount);
 
     if (tileFileCount == 0) {
         std::cerr << "No tile images found in directory." << std::endl;
@@ -48,8 +51,15 @@ int main() {
     for (int i = 0; i < tileFileCount; ++i) {
         Image* tileImage = loadImage(tileFilePaths[i]);
         if (tileImage) {
-            Color avgColor = computeAverageColor(tileImage);
-            tiles.push_back({tileImage, avgColor});
+            // Resize tile image to PIXELS_PER_TILE x PIXELS_PER_TILE
+            Image* resizedTileImage = resizeImage(tileImage, PIXELS_PER_TILE, PIXELS_PER_TILE);
+            freeImage(tileImage); // Free the original tile image
+            if (!resizedTileImage) {
+                std::cerr << "Failed to resize tile image: " << tileFilePaths[i] << std::endl;
+                continue;
+            }
+            Color avgColor = computeAverageColor(resizedTileImage);
+            tiles.push_back({resizedTileImage, avgColor});
         } else {
             std::cerr << "Failed to load tile image: " << tileFilePaths[i] << std::endl;
         }
@@ -59,13 +69,24 @@ int main() {
 
     std::cout << "Loaded " << tiles.size() << " tile images." << std::endl;
 
-    // Determine tile dimensions
-    unsigned tileWidth = tiles[0].image->width;
-    unsigned tileHeight = tiles[0].image->height;
+    // Determine the number of tiles along width and height
+    unsigned tilesAlongWidth, tilesAlongHeight;
 
-    // Calculate output image dimensions
-    unsigned outputWidth = (targetImage->width / tileWidth) * tileWidth;
-    unsigned outputHeight = (targetImage->height / tileHeight) * tileHeight;
+    if (targetImage->width <= targetImage->height) {
+        tilesAlongWidth = NUMBER_OF_TILES;
+        tilesAlongHeight = static_cast<unsigned>(std::round((double)targetImage->height / targetImage->width * NUMBER_OF_TILES));
+    } else {
+        tilesAlongHeight = NUMBER_OF_TILES;
+        tilesAlongWidth = static_cast<unsigned>(std::round((double)targetImage->width / targetImage->height * NUMBER_OF_TILES));
+    }
+
+    // Output image dimensions
+    unsigned outputWidth = tilesAlongWidth * PIXELS_PER_TILE;
+    unsigned outputHeight = tilesAlongHeight * PIXELS_PER_TILE;
+
+    // Calculate scaling factors
+    double scaleX = (double)targetImage->width / tilesAlongWidth;
+    double scaleY = (double)targetImage->height / tilesAlongHeight;
 
     // Create output image
     unsigned char* outputPixels = (unsigned char*)malloc(outputWidth * outputHeight * 4);
@@ -79,35 +100,47 @@ int main() {
     }
     Image outputImage = {outputPixels, outputWidth, outputHeight};
 
-    // Process each region of the target image
-    for (unsigned y = 0; y < outputHeight; y += tileHeight) {
-        for (unsigned x = 0; x < outputWidth; x += tileWidth) {
+    // Process each tile
+    for (unsigned tileY = 0; tileY < tilesAlongHeight; ++tileY) {
+        for (unsigned tileX = 0; tileX < tilesAlongWidth; ++tileX) {
+            // Compute the region in the target image
+            unsigned xStart = static_cast<unsigned>(tileX * scaleX);
+            unsigned yStart = static_cast<unsigned>(tileY * scaleY);
+            unsigned xEnd = static_cast<unsigned>((tileX + 1) * scaleX);
+            unsigned yEnd = static_cast<unsigned>((tileY + 1) * scaleY);
+
+            if (xEnd > targetImage->width) xEnd = targetImage->width;
+            if (yEnd > targetImage->height) yEnd = targetImage->height;
+
             // Compute average color of the region
             Color regionAvgColor = {0, 0, 0};
             unsigned long r = 0, g = 0, b = 0;
-            unsigned pixelCount = tileWidth * tileHeight;
+            unsigned pixelCount = 0;
 
-            for (unsigned ty = 0; ty < tileHeight; ++ty) {
-                for (unsigned tx = 0; tx < tileWidth; ++tx) {
-                    unsigned idx = 4 * ((y + ty) * targetImage->width + (x + tx));
+            for (unsigned y = yStart; y < yEnd; ++y) {
+                for (unsigned x = xStart; x < xEnd; ++x) {
+                    unsigned idx = 4 * (y * targetImage->width + x);
                     r += targetImage->pixels[idx];
                     g += targetImage->pixels[idx + 1];
                     b += targetImage->pixels[idx + 2];
+                    ++pixelCount;
                 }
             }
 
-            regionAvgColor.r = (unsigned char)(r / pixelCount);
-            regionAvgColor.g = (unsigned char)(g / pixelCount);
-            regionAvgColor.b = (unsigned char)(b / pixelCount);
+            if (pixelCount > 0) {
+                regionAvgColor.r = static_cast<unsigned char>(r / pixelCount);
+                regionAvgColor.g = static_cast<unsigned char>(g / pixelCount);
+                regionAvgColor.b = static_cast<unsigned char>(b / pixelCount);
+            }
 
             // Find the best matching tile
             Tile* bestTile = nullptr;
             unsigned minDifference = std::numeric_limits<unsigned>::max();
 
             for (auto& tile : tiles) {
-                int dr = (int)regionAvgColor.r - (int)tile.avgColor.r;
-                int dg = (int)regionAvgColor.g - (int)tile.avgColor.g;
-                int db = (int)regionAvgColor.b - (int)tile.avgColor.b;
+                int dr = static_cast<int>(regionAvgColor.r) - static_cast<int>(tile.avgColor.r);
+                int dg = static_cast<int>(regionAvgColor.g) - static_cast<int>(tile.avgColor.g);
+                int db = static_cast<int>(regionAvgColor.b) - static_cast<int>(tile.avgColor.b);
                 unsigned diff = dr * dr + dg * dg + db * db;
 
                 if (diff < minDifference) {
@@ -118,9 +151,13 @@ int main() {
 
             // Copy the best tile into the output image
             if (bestTile) {
-                for (unsigned ty = 0; ty < tileHeight; ++ty) {
-                    for (unsigned tx = 0; tx < tileWidth; ++tx) {
-                        unsigned outIdx = 4 * ((y + ty) * outputImage.width + (x + tx));
+                // Output image coordinates
+                unsigned outX = tileX * PIXELS_PER_TILE;
+                unsigned outY = tileY * PIXELS_PER_TILE;
+
+                for (unsigned ty = 0; ty < PIXELS_PER_TILE; ++ty) {
+                    for (unsigned tx = 0; tx < PIXELS_PER_TILE; ++tx) {
+                        unsigned outIdx = 4 * ((outY + ty) * outputImage.width + (outX + tx));
                         unsigned tileIdx = 4 * (ty * bestTile->image->width + tx);
 
                         outputImage.pixels[outIdx]     = bestTile->image->pixels[tileIdx];
@@ -131,15 +168,15 @@ int main() {
                 }
             }
         }
-        std::cout << "Processed row " << y / tileHeight + 1 << " of " << outputHeight / tileHeight << "." << std::endl;
+        std::cout << "Processed row " << tileY + 1 << " of " << tilesAlongHeight << "." << std::endl;
     }
 
     // Save the output image
-    unsigned error = lodepng_encode32_file(outputImagePath.c_str(), outputImage.pixels, outputImage.width, outputImage.height);
+    unsigned error = lodepng_encode32_file(OUTPUT_IMAGE_PATH, outputImage.pixels, outputImage.width, outputImage.height);
     if (error) {
         std::cerr << "Error saving mosaic: " << lodepng_error_text(error) << std::endl;
     } else {
-        std::cout << "Mosaic saved to " << outputImagePath << std::endl;
+        std::cout << "Mosaic saved to " << OUTPUT_IMAGE_PATH << std::endl;
     }
 
     // Free resources
