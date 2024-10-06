@@ -6,16 +6,13 @@
 extern "C" {
 #endif
 
-#ifndef MOSAIC_MAKER_IMAGE_UTIL_H
-#define MOSAIC_MAKER_IMAGE_UTIL_H
+#ifndef IMAGE_UTIL_H
+#define IMAGE_UTIL_H
 
+#include "lodepng/lodepng.h"
 #include <stdlib.h>
-
-typedef struct {
-    unsigned char *pixels;
-    unsigned width;
-    unsigned height;
-} Image;
+#include <stdio.h>
+#include <dirent.h>
 
 typedef struct {
     unsigned char r;
@@ -23,14 +20,19 @@ typedef struct {
     unsigned char b;
 } Color;
 
-int loadImage(const char *filepath, Image *img);
+typedef struct {
+    unsigned char* pixels;
+    unsigned width;
+    unsigned height;
+} Image;
 
-void computeAverageColor(const Image *img, Color *avgColor);
+Image* loadImage(const char* filename);
+void freeImage(Image* image);
+Color computeAverageColor(const Image* image);
+void getDirectoryFilePaths(const char* directoryPath, char*** filenames, int* filecount);
 
-void freeImage(Image *img);
-
-#endif // MOSAIC_MAKER_IMAGE_UTIL_H
+#endif // IMAGE_UTIL_H
 
 #ifdef __cplusplus
-};
+}
 #endif
