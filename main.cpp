@@ -4,8 +4,10 @@
 #include <filesystem>
 #include <limits>
 
-#include "image_util/image_util.h"
-#include "image_util/lodepng.h"
+#include "image_util.h"
+extern "C" {
+    #include "lodepng/lodepng.h"
+}
 
 namespace fs = std::filesystem;
 
@@ -15,11 +17,11 @@ struct Tile {
     Image image;
 };
 
-int main() {
+int main(int argc, char** argv) {
     // Hardcoded paths
-    std::string targetImagePath = "path/to/target_image.png";
-    std::string tileDirectory = "path/to/tile_images";
-    std::string outputImagePath = "output_mosaic.png";
+    std::string targetImagePath = "/Users/tonyhelsel/git_repositories/cs225/Git Repo CS 225 2/mp_mosaics/abbey-Road.png";
+    std::string tileDirectory = "/Users/tonyhelsel/git_repositories/cs225/Git Repo CS 225 2/mp_mosaics/photolibrary";
+    std::string outputImagePath = "/Users/tonyhelsel/CLionProjects/mosaic_maker/output_mosaic.png";
 
     // Load target image
     Image targetImage;
@@ -51,6 +53,8 @@ int main() {
         return 1;
     }
 
+    std::cout << "Loaded " << tiles.size() << " tile images." << std::endl;
+
     // Create the output image
     unsigned outputWidth = (targetImage.width / tileWidth) * tileWidth;
     unsigned outputHeight = (targetImage.height / tileHeight) * tileHeight;
@@ -58,6 +62,9 @@ int main() {
     outputImage.width = outputWidth;
     outputImage.height = outputHeight;
     outputImage.pixels = (unsigned char*)malloc(outputWidth * outputHeight * 4);
+
+    std::cout << "Output Width:  " << outputWidth << std::endl;
+    std::cout << "Output Height: " << outputHeight << std::endl;
 
     // Process each region of the target image
     for (unsigned y = 0; y < outputHeight; y += tileHeight) {
@@ -111,6 +118,7 @@ int main() {
                 }
             }
         }
+        std::cout << "Processed row " << y / tileHeight + 1 << " of " << outputHeight / tileHeight << "." << std::endl;
     }
 
     // Save the output image

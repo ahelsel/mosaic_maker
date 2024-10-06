@@ -3,7 +3,8 @@
 //
 
 #include "image_util.h"
-#include "lodepng.h"
+
+#include "lodepng/lodepng.h"
 #include <stdio.h>
 
 int loadImage(const char* filepath, Image* img) {
