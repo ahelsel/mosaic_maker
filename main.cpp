@@ -1,8 +1,10 @@
 #include <iostream>
 #include <vector>
-#include <string>
 #include <limits>
 #include <cmath>
+
+#include <cstdlib>
+#include <cstring>
 
 #include "image_util.h"
 
@@ -10,16 +12,14 @@ extern "C" {
 #include "lodepng/lodepng.h"
 }
 
-// Parameters (hardcoded as per mp_mosaics assignment)
-//#define TARGET_IMAGE_PATH   "background_image.png"
-//#define TILE_DIRECTORY      "tile_directory/"
-//#define OUTPUT_IMAGE_PATH   "mosaic.png"
 
-#define TARGET_IMAGE_PATH   "C:\\Users\\Tony\\CLionProjects\\mosaic_maker\\mona_lisa.png"
-#define TILE_DIRECTORY      "C:\\Users\\Tony\\CLionProjects\\mosaic_maker\\blocks"
-#define OUTPUT_IMAGE_PATH   "C:\\Users\\Tony\\CLionProjects\\mosaic_maker\\output_mosaic.png"
+// hardcoded absolute paths for target image, tile directories, and output images
+// we need to access from the previous directory because the exe is executing in the cmake-build-debug directory
+#define TARGET_IMAGE_PATH   "../target_images//mona_lisa.png"
+#define TILE_DIRECTORY      "../blocks"
+#define OUTPUT_IMAGE_PATH   "../output_mosaic.png"
 
-#define NUMBER_OF_TILES     150  // Number of tiles along the shorter dimension
+#define NUMBER_OF_TILES     100  // Number of tiles along the shorter dimension
 #define PIXELS_PER_TILE     50   // Width/height of each tile in the mosaic
 
 // Structure to hold tile information
@@ -28,9 +28,18 @@ struct Tile {
     Color avgColor;
 };
 
+void local_cleanup(Image* targetImage, Image& outputImage,std::vector<Tile>& tiles) {
+    freeImage(targetImage);
+    free(outputImage.pixels);
+    for (auto& tile : tiles) {
+        freeImage(tile.image);
+    }
+}
+
 int main() {
     // Load target image
-    Image* targetImage = loadImage(TARGET_IMAGE_PATH);
+    const char* path = TARGET_IMAGE_PATH;
+    Image* targetImage = loadImage(path);
     if (!targetImage) {
         std::cerr << "Failed to load target image." << std::endl;
         return EXIT_FAILURE;
@@ -171,6 +180,8 @@ int main() {
         std::cout << "Processed row " << tileY + 1 << " of " << tilesAlongHeight << "." << std::endl;
     }
 
+    std::cout << "Saving output image..." << std::endl;
+
     // Save the output image
     unsigned error = lodepng_encode32_file(OUTPUT_IMAGE_PATH, outputImage.pixels, outputImage.width, outputImage.height);
     if (error) {
@@ -179,12 +190,7 @@ int main() {
         std::cout << "Mosaic saved to " << OUTPUT_IMAGE_PATH << std::endl;
     }
 
-    // Free resources
-    freeImage(targetImage);
-    free(outputImage.pixels);
-    for (auto& tile : tiles) {
-        freeImage(tile.image);
-    }
+    local_cleanup(targetImage, outputImage, tiles);
 
     return EXIT_SUCCESS;
 }

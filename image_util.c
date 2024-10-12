@@ -3,7 +3,6 @@
 //
 #include "image_util.h"
 #include <string.h>
-#include <math.h>
 
 Image* loadImage(const char* filename) {
     Image* image = (Image*)malloc(sizeof(Image));
