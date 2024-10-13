@@ -28,7 +28,12 @@ struct Tile {
     Color avgColor;
 };
 
-void local_cleanup(Image* targetImage, Image& outputImage,std::vector<Tile>& tiles) {
+
+int local_init() {
+    // TODO: local init function
+}
+
+int local_cleanup(Image* targetImage, Image& outputImage,std::vector<Tile>& tiles) {
     freeImage(targetImage);
     free(outputImage.pixels);
     for (auto& tile : tiles) {
@@ -90,11 +95,11 @@ int main() {
     }
 
     // Output image dimensions
-    unsigned outputWidth = tilesAlongWidth * PIXELS_PER_TILE;
+    unsigned outputWidth  = tilesAlongWidth  * PIXELS_PER_TILE;
     unsigned outputHeight = tilesAlongHeight * PIXELS_PER_TILE;
 
     // Calculate scaling factors
-    double scaleX = (double)targetImage->width / tilesAlongWidth;
+    double scaleX = (double)targetImage->width  / tilesAlongWidth;
     double scaleY = (double)targetImage->height / tilesAlongHeight;
 
     // Create output image
@@ -180,6 +185,7 @@ int main() {
         std::cout << "Processed row " << tileY + 1 << " of " << tilesAlongHeight << "." << std::endl;
     }
 
+
     std::cout << "Saving output image..." << std::endl;
 
     // Save the output image
@@ -190,7 +196,10 @@ int main() {
         std::cout << "Mosaic saved to " << OUTPUT_IMAGE_PATH << std::endl;
     }
 
-    local_cleanup(targetImage, outputImage, tiles);
+    if (local_cleanup(targetImage, outputImage, tiles) != 0) {
+        // print error
+        return EXIT_FAILURE;
+    }
 
     return EXIT_SUCCESS;
 }
