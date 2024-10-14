@@ -8,6 +8,25 @@
 
 #include "image_util.h"
 
+
+/*
+ * TODO:
+ * When the program is started, check for any files in the target_images directory.
+ * If there is only one, use that as the target image. If there are multiple, ask the user to select
+ * a target image. (List them on the console, numbered, and ensure the scanf picks up a valid index
+ * of the target_image array/vector.
+ *
+ * Create a directory called tile_images that will be used and found by the program for the tile images
+ * (just change blocks to tile_images)
+ *
+ * Create a progress indicator in the terminal.
+ *
+ * Implement ncurses or similar to make it look better than just cout printing
+ *
+ * Inform user of any fatal errors
+ * */
+
+
 extern "C" {
 #include "lodepng/lodepng.h"
 }
