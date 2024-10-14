@@ -12,7 +12,6 @@ extern "C" {
 #include "lodepng/lodepng.h"
 }
 
-
 // hardcoded absolute paths for target image, tile directories, and output images
 // we need to access from the previous directory because the exe is executing in the cmake-build-debug directory
 #define TARGET_IMAGE_PATH   "../target_images//mona_lisa.png"
@@ -31,6 +30,7 @@ struct Tile {
 
 int local_init() {
     // TODO: local init function
+    return 0;
 }
 
 int local_cleanup(Image* targetImage, Image& outputImage,std::vector<Tile>& tiles) {
@@ -39,9 +39,11 @@ int local_cleanup(Image* targetImage, Image& outputImage,std::vector<Tile>& tile
     for (auto& tile : tiles) {
         freeImage(tile.image);
     }
+    return 0;
 }
 
 int main() {
+
     // Load target image
     const char* path = TARGET_IMAGE_PATH;
     Image* targetImage = loadImage(path);
@@ -61,6 +63,7 @@ int main() {
         return EXIT_FAILURE;
     }
 
+    // resize the tile images and get the average color of each
     std::vector<Tile> tiles;
     for (int i = 0; i < tileFileCount; ++i) {
         Image* tileImage = loadImage(tileFilePaths[i]);
@@ -102,7 +105,7 @@ int main() {
     double scaleX = (double)targetImage->width  / tilesAlongWidth;
     double scaleY = (double)targetImage->height / tilesAlongHeight;
 
-    // Create output image
+    // Allocate output image memory
     unsigned char* outputPixels = (unsigned char*)malloc(outputWidth * outputHeight * 4);
     if (!outputPixels) {
         std::cerr << "Failed to allocate memory for output image." << std::endl;
@@ -114,7 +117,7 @@ int main() {
     }
     Image outputImage = {outputPixels, outputWidth, outputHeight};
 
-    // Process each tile
+    // For each region ("tile") of the image, calculate the average color
     for (unsigned tileY = 0; tileY < tilesAlongHeight; ++tileY) {
         for (unsigned tileX = 0; tileX < tilesAlongWidth; ++tileX) {
             // Compute the region in the target image
@@ -147,7 +150,7 @@ int main() {
                 regionAvgColor.b = static_cast<unsigned char>(b / pixelCount);
             }
 
-            // Find the best matching tile
+            // Find the best matching tile image based on avg color
             Tile* bestTile = nullptr;
             unsigned minDifference = std::numeric_limits<unsigned>::max();
 
