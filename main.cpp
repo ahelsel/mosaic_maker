@@ -30,15 +30,41 @@ struct Tile {
 
 int local_init() {
     // TODO: local init function
+    // error checking along the way
     return 0;
 }
 
 int local_cleanup(Image* targetImage, Image& outputImage,std::vector<Tile>& tiles) {
+    // todo: error checking at each step
     freeImage(targetImage);
     free(outputImage.pixels);
     for (auto& tile : tiles) {
         freeImage(tile.image);
     }
+    return 0;
+}
+
+// todo: error checking at each step
+// resize the tile images and get the average color of each
+int computeTiles(std::vector<Tile>& tiles, char** tileFilePaths, int tileFileCount) {
+    for (int i = 0; i < tileFileCount; ++i) {
+        Image* tileImage = loadImage(tileFilePaths[i]);
+        if (tileImage) {
+            // Resize tile image to PIXELS_PER_TILE x PIXELS_PER_TILE
+            Image* resizedTileImage = resizeImage(tileImage, PIXELS_PER_TILE, PIXELS_PER_TILE);
+            freeImage(tileImage); // Free the original tile image
+            if (!resizedTileImage) {
+                std::cerr << "Failed to resize tile image: " << tileFilePaths[i] << std::endl;
+                continue;
+            }
+            Color avgColor = computeAverageColor(resizedTileImage);
+            tiles.push_back({resizedTileImage, avgColor});
+        } else {
+            std::cerr << "Failed to load tile image: " << tileFilePaths[i] << std::endl;
+        }
+        free(tileFilePaths[i]);
+    }
+    free(tileFilePaths);
     return 0;
 }
 
@@ -63,26 +89,14 @@ int main() {
         return EXIT_FAILURE;
     }
 
+    // todo: seperate function for computing tile specs; something like int computeTiles(std::vector<Tile>& tiles, char** tileFilePaths);
     // resize the tile images and get the average color of each
     std::vector<Tile> tiles;
-    for (int i = 0; i < tileFileCount; ++i) {
-        Image* tileImage = loadImage(tileFilePaths[i]);
-        if (tileImage) {
-            // Resize tile image to PIXELS_PER_TILE x PIXELS_PER_TILE
-            Image* resizedTileImage = resizeImage(tileImage, PIXELS_PER_TILE, PIXELS_PER_TILE);
-            freeImage(tileImage); // Free the original tile image
-            if (!resizedTileImage) {
-                std::cerr << "Failed to resize tile image: " << tileFilePaths[i] << std::endl;
-                continue;
-            }
-            Color avgColor = computeAverageColor(resizedTileImage);
-            tiles.push_back({resizedTileImage, avgColor});
-        } else {
-            std::cerr << "Failed to load tile image: " << tileFilePaths[i] << std::endl;
-        }
-        free(tileFilePaths[i]);
+    if (computeTiles(tiles, tileFilePaths, tileFileCount) != 0) {
+        std::cerr << "Failed to resize tile images or compute average tile color." << std::endl;
+        free(tileFilePaths);
+        return 1;
     }
-    free(tileFilePaths);
 
     std::cout << "Loaded " << tiles.size() << " tile images." << std::endl;
 
