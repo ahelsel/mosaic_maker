@@ -46,15 +46,23 @@ struct Tile {
     Color avgColor;
 };
 
-
-int local_init() {
-    // TODO: local init function
-    // error checking along the way
+int local_init(Image*& targetImage, char*** tileFilePaths, int* tileFileCount) {
+    const char* path = TARGET_IMAGE_PATH;
+    targetImage = loadImage(path);
+    if (!targetImage) {
+        std::cerr << "Failed to load target image." << std::endl;
+        return EXIT_FAILURE;
+    }
+    getDirectoryFilePaths(TILE_DIRECTORY, tileFilePaths, tileFileCount);
+    if (tileFileCount == 0) {
+        std::cerr << "No tile images found in directory." << std::endl;
+        freeImage(targetImage);
+        return EXIT_FAILURE;
+    }
     return 0;
 }
 
 int local_cleanup(Image* targetImage, Image& outputImage,std::vector<Tile>& tiles) {
-    // todo: error checking at each step
     freeImage(targetImage);
     free(outputImage.pixels);
     for (auto& tile : tiles) {
@@ -90,22 +98,12 @@ int computeTiles(std::vector<Tile>& tiles, char** tileFilePaths, int tileFileCou
 int main() {
 
     // Load target image
-    const char* path = TARGET_IMAGE_PATH;
-    Image* targetImage = loadImage(path);
-    if (!targetImage) {
-        std::cerr << "Failed to load target image." << std::endl;
-        return EXIT_FAILURE;
-    }
-
-    // Load tile images
+    Image* targetImage = nullptr;
     char** tileFilePaths = nullptr;
     int tileFileCount = 0;
-    getDirectoryFilePaths(TILE_DIRECTORY, &tileFilePaths, &tileFileCount);
-
-    if (tileFileCount == 0) {
-        std::cerr << "No tile images found in directory." << std::endl;
-        freeImage(targetImage);
-        return EXIT_FAILURE;
+    if (local_init(targetImage, &tileFilePaths, &tileFileCount) != 0) {
+        std::cerr << "Failed at local_init() function call; Exiting..." << std::endl;
+        return 1;
     }
 
     // todo: seperate function for computing tile specs; something like int computeTiles(std::vector<Tile>& tiles, char** tileFilePaths);
@@ -221,7 +219,6 @@ int main() {
         std::cout << "Processed row " << tileY + 1 << " of " << tilesAlongHeight << "." << std::endl;
     }
 
-
     std::cout << "Saving output image..." << std::endl;
 
     // Save the output image
@@ -233,7 +230,7 @@ int main() {
     }
 
     if (local_cleanup(targetImage, outputImage, tiles) != 0) {
-        // print error
+        std::cerr << "Error in local_cleanup(); Exiting..." << std::endl;
         return EXIT_FAILURE;
     }
 
