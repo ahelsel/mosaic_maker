@@ -10,4 +10,5 @@ add_executable(mosaic_maker main.cpp
         image_util.c
         lodepng/lodepng.h
         lodepng/lodepng.c
+        MosaicImage.cpp
 )

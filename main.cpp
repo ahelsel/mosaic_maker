@@ -19,8 +19,6 @@
  * Create a directory called tile_images that will be used and found by the program for the tile images
  * (just change blocks to tile_images)
  *
- * Create a progress indicator in the terminal.
- *
  * Implement ncurses or similar to make it look better than just cout printing
  *
  * Inform user of any fatal errors
@@ -39,6 +37,8 @@ extern "C" {
 
 #define NUMBER_OF_TILES     100  // Number of tiles along the shorter dimension
 #define PIXELS_PER_TILE     50   // Width/height of each tile in the mosaic
+
+#define OPAQUE 255
 
 // Structure to hold tile information
 struct Tile {
@@ -62,18 +62,16 @@ int local_init(Image*& targetImage, char*** tileFilePaths, int* tileFileCount) {
     return 0;
 }
 
-int local_cleanup(Image* targetImage, Image& outputImage,std::vector<Tile>& tiles) {
+void local_cleanup(Image* targetImage, Image& outputImage,std::vector<Tile>& tiles) {
     freeImage(targetImage);
     free(outputImage.pixels);
     for (auto& tile : tiles) {
         freeImage(tile.image);
     }
-    return 0;
 }
 
-// todo: error checking at each step
 // resize the tile images and get the average color of each
-int computeTiles(std::vector<Tile>& tiles, char** tileFilePaths, int tileFileCount) {
+void computeTiles(std::vector<Tile>& tiles, char** tileFilePaths, int tileFileCount) {
     for (int i = 0; i < tileFileCount; ++i) {
         Image* tileImage = loadImage(tileFilePaths[i]);
         if (tileImage) {
@@ -92,7 +90,6 @@ int computeTiles(std::vector<Tile>& tiles, char** tileFilePaths, int tileFileCou
         free(tileFilePaths[i]);
     }
     free(tileFilePaths);
-    return 0;
 }
 
 int main() {
@@ -106,20 +103,14 @@ int main() {
         return 1;
     }
 
-    // todo: seperate function for computing tile specs; something like int computeTiles(std::vector<Tile>& tiles, char** tileFilePaths);
-    // resize the tile images and get the average color of each
+    // create tiles vector and compute tiles
     std::vector<Tile> tiles;
-    if (computeTiles(tiles, tileFilePaths, tileFileCount) != 0) {
-        std::cerr << "Failed to resize tile images or compute average tile color." << std::endl;
-        free(tileFilePaths);
-        return 1;
-    }
+    computeTiles(tiles, tileFilePaths, tileFileCount);
 
     std::cout << "Loaded " << tiles.size() << " tile images." << std::endl;
 
     // Determine the number of tiles along width and height
     unsigned tilesAlongWidth, tilesAlongHeight;
-
     if (targetImage->width <= targetImage->height) {
         tilesAlongWidth = NUMBER_OF_TILES;
         tilesAlongHeight = static_cast<unsigned>(std::round((double)targetImage->height / targetImage->width * NUMBER_OF_TILES));
@@ -211,7 +202,7 @@ int main() {
                         outputImage.pixels[outIdx]     = bestTile->image->pixels[tileIdx];
                         outputImage.pixels[outIdx + 1] = bestTile->image->pixels[tileIdx + 1];
                         outputImage.pixels[outIdx + 2] = bestTile->image->pixels[tileIdx + 2];
-                        outputImage.pixels[outIdx + 3] = 255; // Opaque
+                        outputImage.pixels[outIdx + 3] = OPAQUE; // Opaque
                     }
                 }
             }
@@ -229,10 +220,6 @@ int main() {
         std::cout << "Mosaic saved to " << OUTPUT_IMAGE_PATH << std::endl;
     }
 
-    if (local_cleanup(targetImage, outputImage, tiles) != 0) {
-        std::cerr << "Error in local_cleanup(); Exiting..." << std::endl;
-        return EXIT_FAILURE;
-    }
-
+    local_cleanup(targetImage, outputImage, tiles);
     return EXIT_SUCCESS;
 }

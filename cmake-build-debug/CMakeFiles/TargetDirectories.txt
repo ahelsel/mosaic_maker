@@ -1,3 +1,0 @@
-C:/Users/Tony/CLionProjects/mosaic_maker/cmake-build-debug/CMakeFiles/mosaic_maker.dir
-C:/Users/Tony/CLionProjects/mosaic_maker/cmake-build-debug/CMakeFiles/edit_cache.dir
-C:/Users/Tony/CLionProjects/mosaic_maker/cmake-build-debug/CMakeFiles/rebuild_cache.dir
