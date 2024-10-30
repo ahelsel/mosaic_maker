@@ -9,7 +9,7 @@ extern "C" {
 #ifndef IMAGE_UTIL_H
 #define IMAGE_UTIL_H
 
-#include "lodepng/lodepng.h"
+#include "external/lodepng/lodepng.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <dirent.h>

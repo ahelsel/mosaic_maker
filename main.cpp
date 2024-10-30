@@ -26,7 +26,7 @@
 
 
 extern "C" {
-#include "lodepng/lodepng.h"
+#include "external/lodepng/lodepng.h"
 }
 
 // hardcoded absolute paths for target image, tile directories, and output images
