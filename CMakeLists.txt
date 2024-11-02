@@ -34,7 +34,8 @@ add_executable(mosaic_maker
         image_util.c
         external/lodepng/lodepng.h
         external/lodepng/lodepng.c
-        MosaicImage.cpp
+        mosaic_util.c
+        mosaic_util.h
 )
 
 # Link SDL2 libraries
